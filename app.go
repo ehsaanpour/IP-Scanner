@@ -16,12 +16,12 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"github.com/matinsenpai/senpaiscanner/internal/engine"
-	"github.com/matinsenpai/senpaiscanner/internal/ipsrc"
-	"github.com/matinsenpai/senpaiscanner/internal/output"
-	"github.com/matinsenpai/senpaiscanner/internal/prober"
-	"github.com/matinsenpai/senpaiscanner/internal/result"
-	"github.com/matinsenpai/senpaiscanner/pkg/version"
+	"github.com/ehsaanpour/IP-Scanner/internal/engine"
+	"github.com/ehsaanpour/IP-Scanner/internal/ipsrc"
+	"github.com/ehsaanpour/IP-Scanner/internal/output"
+	"github.com/ehsaanpour/IP-Scanner/internal/prober"
+	"github.com/ehsaanpour/IP-Scanner/internal/result"
+	"github.com/ehsaanpour/IP-Scanner/pkg/version"
 )
 
 // CustomScanConfig holds all parameters for a custom scan
@@ -80,7 +80,7 @@ func (a *App) GetVersion() string {
 
 // OpenGitHub opens the GitHub repository in the default browser
 func (a *App) OpenGitHub() {
-	runtime.BrowserOpenURL(a.ctx, "https://github.com/MatinSenPai/SenPaiScanner")
+	runtime.BrowserOpenURL(a.ctx, "https://github.com/ehsaanpour/IP-Scanner")
 }
 
 // CopyToClipboard copies the given text to the system clipboard

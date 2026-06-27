@@ -1,4 +1,4 @@
-module github.com/matinsenpai/senpaiscanner
+module github.com/ehsaanpour/IP-Scanner
 
 go 1.25.5
 

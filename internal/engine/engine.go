@@ -9,8 +9,8 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"github.com/matinsenpai/senpaiscanner/internal/prober"
-	"github.com/matinsenpai/senpaiscanner/internal/result"
+	"github.com/ehsaanpour/IP-Scanner/internal/prober"
+	"github.com/ehsaanpour/IP-Scanner/internal/result"
 )
 
 // Config controls engine behaviour.

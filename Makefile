@@ -1,6 +1,6 @@
-BINARY     := senpaiscanner
-MODULE     := github.com/matinsenpai/senpaiscanner
-CMD        := ./cmd/senpaiscanner
+BINARY     := ipscanner
+MODULE     := github.com/ehsaanpour/IP-Scanner
+CMD        := .
 VERSION    := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 COMMIT     := $(shell git rev-parse --short HEAD 2>/dev/null || echo "none")
 BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "unknown")
@@ -22,9 +22,9 @@ build:
 	go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(BINARY) $(CMD)
 
 build-windows:
-	set GOMODCACHE=d:\go-mod&& set GOPATH=d:\go&& set GOCACHE=d:\go-cache&& set GOTOOLCHAIN=local&& C:\Users\EE\go\bin\wails build -platform windows/amd64 -ldflags "-s -w" -o senpaiscanner-gui_windows_x86_64.exe
+	set GOMODCACHE=d:\go-mod&& set GOPATH=d:\go&& set GOCACHE=d:\go-cache&& set GOTOOLCHAIN=local&& C:\Users\EE\go\bin\wails build -platform windows/amd64 -ldflags "-s -w" -o ipscanner-gui_windows_x86_64.exe
 	@if not exist dist mkdir dist
-	copy build\bin\senpaiscanner-gui_windows_x86_64.exe dist\senpaiscanner-gui_windows_x86_64.exe
+	copy build\bin\ipscanner-gui_windows_x86_64.exe dist\ipscanner-gui_windows_x86_64.exe
 
 build-windows-amd64:
 	GOOS=windows GOARCH=amd64 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o dist/$(BINARY)-windows-amd64.exe $(CMD)

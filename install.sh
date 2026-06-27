@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Auto installer/updater for SenPaiScanner
+# Auto installer/updater for IP-Scanner
 #
 # Usage:
-#   curl -fsSL https://github.com/MatinSenPai/SenPaiScanner/raw/refs/heads/main/install.sh | bash
+#   curl -fsSL https://github.com/ehsaanpour/IP-Scanner/raw/refs/heads/main/install.sh | bash
 #   
 #
 # Pre-release support:
-#   curl -fsSL https://github.com/MatinSenPai/SenPaiScanner/raw/refs/heads/main/install.sh | bash -s -- --prerelease
+#   curl -fsSL https://github.com/ehsaanpour/IP-Scanner/raw/refs/heads/main/install.sh | bash -s -- --prerelease
 #   or
 #   PRERELEASE=1 bash install.sh
 #   or
@@ -18,8 +18,8 @@ set -eu
 DEBUG=${DEBUG:-0}
 PRERELEASE=${PRERELEASE:-0}
 
-REPO="MatinSenPai/SenPaiScanner"
-BIN_NAME="senpaiscanner"
+REPO="ehsaanpour/IP-Scanner"
+BIN_NAME="ipscanner"
 
 for arg in "$@"; do
     case "$arg" in

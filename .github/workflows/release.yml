@@ -100,7 +100,7 @@ jobs:
       - name: Prepare release files
         run: |
           mkdir -p release-artifacts
-          APP_NAME="SenPaiScanner"
+          APP_NAME="IPScanner"
           VERSION="${ANDROID_VERSION_NAME}"
 
           for apk in android/app/build/outputs/apk/release/*.apk; do

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/matinsenpai/senpaiscanner/internal/result"
+	"github.com/ehsaanpour/IP-Scanner/internal/result"
 )
 
 // sniHostnames is a list of well-known Cloudflare hostnames used as SNI values.
@@ -496,7 +496,7 @@ func probeStability(ctx context.Context, ip net.IP, port int, sni string, timeou
 		}
 	}
 	if idleHold < 500*time.Millisecond {
-		idleHold = 500*time.Millisecond
+		idleHold = 500 * time.Millisecond
 	}
 	if idleHold < 500*time.Millisecond {
 		idleHold = 500 * time.Millisecond

@@ -1,6 +1,6 @@
 version: 2
 
-project_name: senpaiscanner
+project_name: ipscanner
 
 before:
   hooks:
@@ -8,19 +8,19 @@ before:
     - go generate ./...
 
 builds:
-  - id: senpaiscanner
-    main: ./cmd/senpaiscanner
-    binary: senpaiscanner
+  - id: ipscanner
+    main: .
+    binary: ipscanner
     env:
       - CGO_ENABLED=0
     flags:
       - -trimpath
     ldflags:
       - -s -w
-      - -X github.com/matinsenpai/senpaiscanner/pkg/version.Version={{.Version}}
-      - -X github.com/matinsenpai/senpaiscanner/pkg/version.Commit={{.Commit}}
-      - -X github.com/matinsenpai/senpaiscanner/pkg/version.BuildDate={{.Date}}
-      - -X github.com/matinsenpai/senpaiscanner/pkg/version.BuiltBy=goreleaser
+      - -X github.com/ehsaanpour/IP-Scanner/pkg/version.Version={{.Version}}
+      - -X github.com/ehsaanpour/IP-Scanner/pkg/version.Commit={{.Commit}}
+      - -X github.com/ehsaanpour/IP-Scanner/pkg/version.BuildDate={{.Date}}
+      - -X github.com/ehsaanpour/IP-Scanner/pkg/version.BuiltBy=goreleaser
     goos:
       - linux
       - windows
@@ -33,7 +33,7 @@ builds:
         goarch: arm64
 
 archives:
-  - id: senpaiscanner
+  - id: ipscanner
     name_template: >-
       {{.ProjectName}}_
       {{- .Os}}_
@@ -80,8 +80,8 @@ changelog:
 
 release:
   github:
-    owner: matinsenpai
-    name: senpaiscanner
+    owner: ehsaanpour
+    name: IP-Scanner
   draft: false
   prerelease: auto
   name_template: "{{.ProjectName}} v{{.Version}}"

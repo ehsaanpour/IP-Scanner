@@ -17,7 +17,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:     "SenPai Scanner GUI",
+		Title:     "IP Scanner GUI",
 		Width:     950,
 		Height:    650,
 		MinWidth:  900,

@@ -85,4 +85,4 @@ def generate_icons(project_dir):
     print(f"Generated icons for {project_dir}")
 
 if __name__ == '__main__':
-    generate_icons(r'C:\Users\user\Desktop\app\goose\New folder\SenPaiScanner-main')
+    generate_icons(r'C:\Users\user\Desktop\app\goose\New folder\IP-Scanner')
