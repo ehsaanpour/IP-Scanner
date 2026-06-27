@@ -1,0 +1,565 @@
+/* Reset & variables */
+:root {
+  --bg: #121212;
+  --surface: #1e1e1e;
+  --surface-hover: #292929;
+  --border: #333333;
+  --text: #e0e0e0;
+  --text-muted: #888888;
+  --primary: #10b981; /* Green */
+  --primary-hover: #059669;
+  --secondary: #4b5563; /* Gray */
+  --secondary-hover: #374151;
+  --danger: #ef4444; /* Red */
+  --danger-hover: #dc2626;
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --error-bg: rgba(239, 68, 68, 0.1);
+  --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  --font-mono: 'Consolas', 'Courier New', Courier, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  overflow: hidden;
+  user-select: none;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* App container */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  padding: 20px;
+}
+
+/* Screens */
+.screen {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* Main Menu */
+#screen-main-menu {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.menu-header {
+  margin-bottom: 40px;
+}
+
+.logo-text {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--primary);
+  display: block;
+  letter-spacing: -1px;
+}
+
+.logo-sub {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 320px;
+}
+
+/* Buttons */
+.btn {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.btn-primary {
+  background-color: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-primary:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--primary);
+}
+
+.btn-secondary {
+  background-color: var(--secondary);
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-hover);
+}
+
+.btn-danger {
+  background-color: var(--danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: var(--danger-hover);
+}
+
+.btn-success {
+  background-color: var(--primary);
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+.btn-lg {
+  padding: 16px 32px;
+  font-size: 1.1rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Screen Headers */
+.screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.screen-header h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Form Container */
+.form-container {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 25px;
+  max-width: 650px;
+  margin: 0 auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 120px);
+}
+
+.form-container.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-width: 800px;
+}
+
+.col-span-2 {
+  grid-column: span 2;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.form-control {
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  padding: 10px 14px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  border-color: var(--primary);
+}
+
+/* Preset groups for Quick Scan */
+.preset-group {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-preset {
+  flex: 1;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 10px;
+  transition: all 0.2s;
+}
+
+.btn-preset:hover {
+  background-color: var(--surface-hover);
+}
+
+.btn-preset.active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+/* File Picker Input + Button */
+.input-with-btn {
+  display: flex;
+  gap: 10px;
+}
+
+.input-with-btn input {
+  flex: 1;
+}
+
+/* Toggles */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+  align-items: center;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  padding-left: 55px;
+  height: 26px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.toggle-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 26px;
+  width: 46px;
+  background-color: var(--secondary);
+  border-radius: 34px;
+  transition: 0.3s;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle-container input:checked ~ .toggle-slider {
+  background-color: var(--primary);
+}
+
+.toggle-container input:checked ~ .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  color: var(--text);
+}
+
+/* Stats Bar */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.stat-val {
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+}
+
+.text-green {
+  color: var(--primary) !important;
+}
+
+.text-red {
+  color: var(--danger) !important;
+}
+
+/* Progress Bar */
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.progress-bar-bg {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  height: 14px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  background-color: var(--primary);
+  height: 100%;
+  width: 0%;
+  transition: width 0.1s ease-out;
+}
+
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Tables */
+.table-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.table-controls label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.inline-select {
+  width: auto;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+}
+
+.table-container {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-y: auto;
+  background-color: var(--surface);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.data-table th {
+  background-color: var(--surface);
+  border-bottom: 2px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 12px 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.data-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.data-table tbody tr {
+  transition: background-color 0.15s;
+}
+
+.data-table tbody tr:hover {
+  background-color: var(--surface-hover);
+}
+
+/* IP and data columns should use monospace */
+.data-table td:nth-child(1), /* IP */
+.data-table td:nth-child(2), /* Loss */
+.data-table td:nth-child(3), /* Avg */
+.data-table td:nth-child(4), /* Min */
+.data-table td:nth-child(5), /* Max */
+.data-table td:nth-child(6), /* Jitter */
+.data-table td:nth-child(7), /* Speed */
+.data-table td:nth-child(8), /* Colo */
+.data-table td:nth-child(10) /* HTTP Status */ {
+  font-family: var(--font-mono);
+}
+
+/* Row Highlights */
+.row-healthy {
+  background-color: var(--success-bg) !important;
+}
+
+.row-unhealthy {
+  background-color: var(--error-bg) !important;
+  color: var(--text-muted);
+}
+
+/* About Screen */
+.about-container {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 40px;
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.about-logo {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 20px;
+}
+
+.about-desc {
+  color: var(--text);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.about-info {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.about-info p {
+  font-size: 0.95rem;
+}
+
+.link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.desc-text {
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+
+.m-top-20 {
+  margin-top: 20px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
+}

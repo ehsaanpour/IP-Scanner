@@ -1,0 +1,195 @@
+# SenPai Scanner
+
+> **Persian / فارسی:** [README.fa.md](README.fa.md)
+
+[![CI](https://github.com/matinsenpai/senpaiscanner/actions/workflows/ci.yml/badge.svg)](https://github.com/matinsenpai/senpaiscanner/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/matinsenpai/senpaiscanner?style=flat-square)](https://github.com/matinsenpai/senpaiscanner/releases/latest)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/matinsenpai/senpaiscanner?style=flat-square)](go.mod)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
+[![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20windows%20%7C%20android%20%7C%20termux-informational?style=flat-square)](#installation)
+
+<img width="825" height="589" alt="image" src="https://github.com/user-attachments/assets/6558f7b1-bd9d-460a-adf2-d314fe70c48a" />
+
+A Cloudflare IP finder with a terminal UI and an Android app, built for networks where latency is unpredictable and connections drop without warning. Probe Cloudflare edge IPs, optionally validate them through your VLESS or Trojan config with embedded xray — no commands to memorize.
+
+---
+
+## Features
+
+*   **Cloudflare IP Scanning**: Quickly finds working Cloudflare IPs.
+*   **Terminal UI (TUI)**: Interactive menu-driven interface, no complex CLI flags.
+*   **Multi-Platform**: Linux, macOS, Windows, Android (APK & Termux).
+*   **Proxy Validation**: End-to-end testing of IPs using VLESS/Trojan configurations (via embedded Xray).
+*   **Neighbor Scan**: Explores nearby IPs in the same Cloudflare block for more hits.
+*   **Persistency**: Saves last scan settings automatically.
+*   **Clipboard & File Output**: Copy working IPs to clipboard and save to `ips.txt`.
+
+## How it works
+
+Run `senpaiscanner` and you land in a short menu. Navigate with arrow keys and Enter — no scan-related CLI flags.
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  ▶  Find Working IPs   scan Cloudflare IPs — config optional │
+│     Retry Last Scan    retry last scan with previous config  │
+│     About                                                │
+│     Quit                                                 │
+└────────────────────────────────────────────────────────────┘
+```
+
+**Find Working IPs** can run in one or two phases:
+
+1.  **Phase 1 — Connectivity scan** probes candidate Cloudflare IPs. Without a config URL it uses a standard HTTP probe; with a URL it derives SNI, host, WebSocket path, and port from your link. SenPai Scanner intelligently parses your VLESS or Trojan configuration URL. In **Random** mode, healthy hits also trigger a **neighbor scan** — nearby addresses in the same Cloudflare block are explored automatically.
+2.  **Phase 2 — xray validation** (optional) launches an embedded xray instance and tests the best Phase 1 hits end-to-end through your actual VLESS/Trojan config. Results show endpoint, transport type, download speed, latency (TTFB), and pass/fail status.
+
+Press **`c`** when a scan finishes to copy working `IP:port` endpoints to the clipboard and save them to `ips.txt` next to the binary (or current working directory).
+
+Your last scan settings are saved automatically. Use **Retry Last Scan** on the home screen to repeat the previous run without re-entering anything.
+
+---
+
+## Installation
+
+### Desktop — pre-built binary
+
+Download from the [releases page](https://github.com/matinsenpai/senpaiscanner/releases/latest).
+
+| Platform | Architecture | File |
+|---|---|---|
+| Linux | x86_64 | `senpaiscanner-linux-amd64` |
+| Linux | ARM64 | `senpaiscanner-linux-arm64` |
+| Linux | 32-bit x86 | `senpaiscanner-linux-386` |
+| macOS | Intel | `senpaiscanner-darwin-amd64` |
+| macOS | Apple Silicon | `senpaiscanner-darwin-arm64` |
+| Windows | x86_64 | `senpaiscanner-windows-amd64.exe` |
+| Windows | 32-bit x86 | `senpaiscanner-windows-386.exe` |
+
+**Linux / macOS:**
+
+```bash
+# stable release
+curl -fsSL https://github.com/MatinSenPai/SenPaiScanner/raw/refs/heads/main/install.sh | bash
+
+# pre-release
+curl -fsSL https://github.com/MatinSenPai/SenPaiScanner/raw/refs/heads/main/install.sh | bash -s -- --prerelease
+```
+
+**Windows (PowerShell):**
+
+```powershell
+$r = Invoke-RestMethod https://api.github.com/repos/matinsenpai/senpaiscanner/releases/latest
+$url = ($r.assets | Where-Object name -eq "senpaiscanner-windows-amd64.exe").browser_download_url
+Invoke-WebRequest $url -OutFile senpaiscanner.exe
+```
+
+### Android — pre-built APK
+
+Signed release APKs are attached to each GitHub release:
+
+| File pattern | Description |
+|---|---|
+| `SenPaiScanner-{version}-universal-release.apk` | All ABIs (recommended) |
+| `SenPaiScanner-{version}-arm64-v8a-release.apk` | 64-bit ARM only |
+| `SenPaiScanner-{version}-armeabi-v7a-release.apk` | 32-bit ARM only |
+
+Install the APK on your device (enable “Install from unknown sources” if needed), grant network permission, and tap **START SCAN** on the home screen.
+
+### Termux (Android terminal)
+
+Run the full desktop TUI inside [Termux](https://termux.dev/) — same workflow as Linux, including Phase 2 xray validation, persistent config, live results, and neighbor scan.
+
+**1. Install Termux** from [F-Droid](https://f-droid.org/en/packages/com.termux/) (not the Play Store build). Open the app and run:
+
+```bash
+pkg update && pkg upgrade -y
+pkg install curl tar -y
+```
+
+**2. Install SenPai Scanner** (auto-detects Termux and installs to `$PREFIX/bin`):
+
+```bash
+curl -fsSL https://github.com/MatinSenPai/SenPaiScanner/raw/refs/heads/main/install.sh | bash
+```
+
+Pre-release channel:
+
+```bash
+curl -fsSL https://github.com/MatinSenPai/SenPaiScanner/raw/refs/heads/main/install.sh | bash -s -- --prerelease
+```
+
+The installer downloads `senpaiscanner-linux-arm64` on 64-bit phones. (32-bit ARM devices are uncommon; use the native APK if the Linux binary is unavailable.)
+
+**3. Run:**
+
+```bash
+senpaiscanner
+```
+
+**Termux tips**
+
+| Topic | Notes |
+|---|---|
+| **Navigation** | Arrow keys on the on-screen keyboard, or a Bluetooth keyboard. `k` / `j` / `h` / `l` also work in menus. |
+| **Paste config URL** | Long-press in Termux → Paste, or `termux-clipboard-get` if `termux-api` is installed. *For reliable clipboard access, ensure `pkg install termux-api` is run and permissions are granted.* |
+| **Clipboard (`c` key)** | May not work in all Termux setups by default. Results are always saved to `ips.txt` in the current directory when copy runs — use that file if clipboard fails. |
+| **`ips.txt` / live results** | Keep files in `~/` (e.g. `cd ~` before starting). Paths shown in the TUI are relative to the working directory. |
+| **Config file** | `~/.config/senpaiscanner/config.json` — powers **Retry Last Scan**. |
+| **Long scans** | Optional: `termux-wake-lock` (from `pkg install termux-api`) to reduce the screen turning off mid-scan. |
+| **Update** | Re-run the `install.sh` one-liner; it upgrades to the latest stable release. |
+
+---
+
+## Windows Desktop GUI
+
+SenPai Scanner now includes a native Windows desktop GUI application with a beautiful dark-themed interface, designed for Windows 10 and 11. It replicates all the core scanning and test features in an easy-to-use, responsive graphical interface.
+
+### Features
+*   **Main Menu**: Quick Scan, Custom Scan, Test IPs, Discover Colos, and About.
+*   **Quick Scan**: Fast presets for Count, Workers, and Timeout with a custom fallback input.
+*   **Custom Scan**: Fine-grained settings for Port, Mode, Tries, Output File (with file browser dialog), Colo filter, SNI, and IPv4/IPv6 toggles.
+*   **Live Scan**: Real-time updating table of scanning progress with live counters, progress bar, and sorting options.
+*   **Results View**: Review the top 20 healthy IPs sorted by latency, and copy them to the clipboard with one click.
+*   **Test IPs**: Load an `ips.txt` list using a native file browser dialog and test them with fixed, robust presets.
+*   **Discover Colos**: Grouped PoPs discovery with live group tables of best and average latencies.
+
+### Building from Source
+
+To build the Windows GUI version from source:
+
+1.  Ensure you have **Go** (1.21+) and **Node.js** (with npm) installed.
+2.  Install the **Wails CLI** tool:
+    ```bash
+    go install github.com/wailsapp/wails/v2/cmd/wails@latest
+    ```
+3.  Build the application:
+    ```bash
+    wails build -platform windows/amd64 -ldflags "-s -w" -o senpaiscanner-gui_windows_x86_64.exe
+    ```
+4.  The final windowless executable will be created at `build/bin/senpaiscanner-gui_windows_x86_64.exe` (and copied to `dist/senpaiscanner-gui_windows_x86_64.exe`).
+
+---
+
+## Troubleshooting / FAQ
+
+*   **"Invalid URL error" or scan failures with a valid config**: Ensure your VLESS/Trojan configuration URL is correctly formatted and accessible. Check for typos. If the issue persists, the target server or Xray setup might be rejecting the connection. Consider testing the URL with a standalone Xray client first.
+*   **Scanner gets stuck or crashes**: This can be due to high network latency, an unstable internet connection, or an issue with the Cloudflare IPs being probed. Try restarting the scan, or if persistent, check your system's resource usage. If it's a bug, please [open an issue](https://github.com/MatinSenPai/SenPaiScanner/issues/new/choose) with details.
+*   **No IPs found**: If the scan completes but finds no working IPs, it's possible that all probed IPs are blocked or unavailable in your region, or your network conditions are too poor for successful probes. Try scanning at a different time or from a different network.
+*   **Clipboard not working in Termux**: As noted in the Termux tips, you might need to install `termux-api` (`pkg install termux-api`) and grant necessary permissions. If it still fails, rely on `ips.txt` for your results.
+*   **Slow download speeds/high latency from found IPs**: The scanner validates connectivity and basic speed, but real-world performance can vary greatly based on network congestion, server load, and geographical distance.
+
+---
+
+## Contributing
+
+We welcome contributions! If you're interested in helping develop SenPai Scanner, please see our [CONTRIBUTING.md](CONTRIBUTING.md) guide for details on how to set up your development environment, propose changes, report bugs, or suggest new features.
+
+Ideas for contributions include:
+*   Adding support for more proxy protocols (e.g., Shadowsocks, WireGuard).
+*   Improving the scanning algorithms or UI.
+*   Enhancing the Android app experience.
+
+---
+
+## License
+
+SenPai Scanner is released under the MIT License. See [LICENSE](LICENSE) for more details.

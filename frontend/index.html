@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SenPai Scanner GUI</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- MAIN MENU -->
+    <div id="screen-main-menu" class="screen active">
+      <div class="menu-header">
+        <div class="logo-container">
+          <span class="logo-text">SenPai Scanner</span>
+          <span class="logo-sub">Cloudflare IP Scanner</span>
+        </div>
+      </div>
+      <div class="menu-buttons">
+        <button onclick="showScreen('screen-quick-scan')" class="btn btn-primary">Quick Scan</button>
+        <button onclick="showScreen('screen-custom-scan')" class="btn btn-primary">Custom Scan</button>
+        <button onclick="showScreen('screen-test-ips')" class="btn btn-primary">Test IPs</button>
+        <button onclick="showScreen('screen-discover-colos')" class="btn btn-primary">Discover Colos</button>
+        <button onclick="showScreen('screen-about')" class="btn btn-secondary">About</button>
+        <button onclick="quitApp()" class="btn btn-danger">Quit</button>
+      </div>
+    </div>
+
+    <!-- QUICK SCAN -->
+    <div id="screen-quick-scan" class="screen">
+      <div class="screen-header">
+        <h2>Quick Scan</h2>
+        <button onclick="showScreen('screen-main-menu')" class="btn btn-sm btn-secondary">Back to Menu</button>
+      </div>
+      <div class="form-container">
+        <div class="form-group">
+          <label>Count (IPs to scan)</label>
+          <div class="preset-group">
+            <button onclick="setPreset('quick-count', 5000, this)" class="btn-preset active">5,000</button>
+            <button onclick="setPreset('quick-count', 20000, this)" class="btn-preset">20,000</button>
+            <button onclick="setPreset('quick-count', 100000, this)" class="btn-preset">100,000</button>
+            <button onclick="setPreset('quick-count', 'custom', this)" class="btn-preset">Custom</button>
+          </div>
+          <input type="number" id="quick-count-custom" class="form-control hidden" placeholder="Enter custom count" value="1000">
+        </div>
+
+        <div class="form-group">
+          <label>Workers (Concurrency)</label>
+          <div class="preset-group">
+            <button onclick="setPreset('quick-workers', 50, this)" class="btn-preset active">50</button>
+            <button onclick="setPreset('quick-workers', 100, this)" class="btn-preset">100</button>
+            <button onclick="setPreset('quick-workers', 200, this)" class="btn-preset">200</button>
+            <button onclick="setPreset('quick-workers', 'custom', this)" class="btn-preset">Custom</button>
+          </div>
+          <input type="number" id="quick-workers-custom" class="form-control hidden" placeholder="Enter custom workers" value="100">
+        </div>
+
+        <div class="form-group">
+          <label>Timeout</label>
+          <div class="preset-group">
+            <button onclick="setPreset('quick-timeout', 2000, this)" class="btn-preset active">2s</button>
+            <button onclick="setPreset('quick-timeout', 3000, this)" class="btn-preset">3s</button>
+            <button onclick="setPreset('quick-timeout', 5000, this)" class="btn-preset">5s</button>
+            <button onclick="setPreset('quick-timeout', 'custom', this)" class="btn-preset">Custom</button>
+          </div>
+          <div id="quick-timeout-custom-container" class="hidden">
+            <input type="number" id="quick-timeout-custom" class="form-control" placeholder="Enter timeout in ms" value="1500">
+          </div>
+        </div>
+
+        <button onclick="startQuickScan()" class="btn btn-lg btn-success w-full">Start Scan</button>
+      </div>
+    </div>
+
+    <!-- CUSTOM SCAN -->
+    <div id="screen-custom-scan" class="screen">
+      <div class="screen-header">
+        <h2>Custom Scan</h2>
+        <button onclick="showScreen('screen-main-menu')" class="btn btn-sm btn-secondary">Back to Menu</button>
+      </div>
+      <div class="form-container grid-2">
+        <div class="form-group">
+          <label for="custom-count">Count</label>
+          <input type="number" id="custom-count" class="form-control" value="20000">
+        </div>
+        <div class="form-group">
+          <label for="custom-workers">Workers</label>
+          <input type="number" id="custom-workers" class="form-control" value="100">
+        </div>
+        <div class="form-group">
+          <label for="custom-timeout">Timeout</label>
+          <input type="text" id="custom-timeout" class="form-control" value="3s" placeholder="e.g. 3s, 1500ms">
+        </div>
+        <div class="form-group">
+          <label for="custom-tries">Tries</label>
+          <input type="number" id="custom-tries" class="form-control" value="4">
+        </div>
+        <div class="form-group">
+          <label for="custom-port">Port</label>
+          <select id="custom-port" class="form-control">
+            <option value="443" selected>443</option>
+            <option value="80">80</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="custom-mode">Mode</label>
+          <select id="custom-mode" class="form-control">
+            <option value="http" selected>http</option>
+            <option value="https">https</option>
+            <option value="tls">tls</option>
+            <option value="tcp">tcp</option>
+          </select>
+        </div>
+        <div class="form-group col-span-2">
+          <label for="custom-cidr">CIDR ranges (comma-separated, leave blank for Cloudflare default)</label>
+          <input type="text" id="custom-cidr" class="form-control" placeholder="e.g. 104.16.0.0/12, 172.64.0.0/13">
+        </div>
+        <div class="form-group col-span-2">
+          <label for="custom-output">Output file path</label>
+          <div class="input-with-btn">
+            <input type="text" id="custom-output" class="form-control" placeholder="Select file to export results">
+            <button onclick="browseOutputFile()" class="btn btn-secondary">Browse</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="custom-colo">Colo filter</label>
+          <input type="text" id="custom-colo" class="form-control" placeholder="e.g. FRA,AMS">
+        </div>
+        <div class="form-group">
+          <label for="custom-sni">SNI override</label>
+          <input type="text" id="custom-sni" class="form-control" placeholder="Leave blank for auto-rotation">
+        </div>
+        <div class="form-group col-span-2 flex-row">
+          <label class="toggle-container">
+            <input type="checkbox" id="custom-ipv4" checked>
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">IPv4</span>
+          </label>
+          <label class="toggle-container">
+            <input type="checkbox" id="custom-ipv6">
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">IPv6</span>
+          </label>
+        </div>
+        <div class="col-span-2">
+          <button onclick="startCustomScan()" class="btn btn-lg btn-success w-full">Start Scan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE SCAN -->
+    <div id="screen-live-scan" class="screen">
+      <div class="screen-header">
+        <h2 id="live-scan-title">Scanning...</h2>
+        <div class="header-actions">
+          <button id="btn-cancel-scan" onclick="cancelScan()" class="btn btn-danger">Cancel</button>
+          <button id="btn-view-results" onclick="showResultsScreen()" class="btn btn-success hidden">View Results</button>
+        </div>
+      </div>
+      
+      <!-- STATS BAR -->
+      <div class="stats-bar">
+        <div class="stat-card">
+          <span class="stat-label">Tested</span>
+          <span id="stat-tested" class="stat-val">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Healthy</span>
+          <span id="stat-healthy" class="stat-val text-green">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Failed</span>
+          <span id="stat-failed" class="stat-val text-red">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">In Flight</span>
+          <span id="stat-inflight" class="stat-val">0</span>
+        </div>
+      </div>
+
+      <!-- PROGRESS BAR -->
+      <div class="progress-container">
+        <div class="progress-bar-bg">
+          <div id="scan-progress-bar" class="progress-bar-fill" style="width: 0%"></div>
+        </div>
+        <div class="progress-text">
+          <span id="progress-percent">0%</span>
+          <span id="progress-fraction">0 / 0</span>
+        </div>
+      </div>
+
+      <!-- SORT CONTROLS -->
+      <div class="table-controls">
+        <label for="live-sort">Sort by:</label>
+        <select id="live-sort" onchange="sortLiveResults()" class="form-control inline-select">
+          <option value="avg">Avg Latency</option>
+          <option value="loss">Loss%</option>
+          <option value="jitter">Jitter</option>
+          <option value="speed">Speed</option>
+          <option value="colo">Colo</option>
+        </select>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>IP</th>
+              <th>Loss%</th>
+              <th>Avg ms</th>
+              <th>Min ms</th>
+              <th>Max ms</th>
+              <th>Jitter ms</th>
+              <th>Download KB/s</th>
+              <th>Colo</th>
+              <th>TLS OK</th>
+              <th>HTTP Status</th>
+            </tr>
+          </thead>
+          <tbody id="live-scan-table-body">
+            <!-- Scanned IPs injected here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div id="screen-results" class="screen">
+      <div class="screen-header">
+        <h2>Top 20 Healthy IPs</h2>
+        <div class="header-actions">
+          <button onclick="copyResultsToClipboard()" class="btn btn-primary">Copy IPs to Clipboard</button>
+          <button onclick="showScreen('screen-main-menu')" class="btn btn-secondary">Back to Menu</button>
+        </div>
+      </div>
+
+      <!-- SORT CONTROLS -->
+      <div class="table-controls">
+        <label for="results-sort">Sort by:</label>
+        <select id="results-sort" onchange="sortResultsScreen()" class="form-control inline-select">
+          <option value="avg" selected>Avg Latency</option>
+          <option value="loss">Loss%</option>
+          <option value="jitter">Jitter</option>
+          <option value="speed">Speed</option>
+          <option value="colo">Colo</option>
+        </select>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>IP</th>
+              <th>Loss%</th>
+              <th>Avg ms</th>
+              <th>Min ms</th>
+              <th>Max ms</th>
+              <th>Jitter ms</th>
+              <th>Download KB/s</th>
+              <th>Colo</th>
+              <th>TLS OK</th>
+              <th>HTTP Status</th>
+            </tr>
+          </thead>
+          <tbody id="results-table-body">
+            <!-- Top 20 injected here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TEST IPS -->
+    <div id="screen-test-ips" class="screen">
+      <div class="screen-header">
+        <h2>Test IPs</h2>
+        <button onclick="showScreen('screen-main-menu')" class="btn btn-sm btn-secondary">Back to Menu</button>
+      </div>
+      <div class="form-container">
+        <div class="form-group">
+          <label for="test-ips-file">Select IP list file (ips.txt)</label>
+          <div class="input-with-btn">
+            <input type="text" id="test-ips-file" class="form-control" placeholder="Select ips.txt containing one IP per line">
+            <button onclick="browseInputFile()" class="btn btn-secondary">Browse</button>
+          </div>
+        </div>
+        <button onclick="startTestIPs()" class="btn btn-lg btn-success w-full">Start Test</button>
+      </div>
+    </div>
+
+    <!-- DISCOVER COLOS -->
+    <div id="screen-discover-colos" class="screen">
+      <div class="screen-header">
+        <h2>Discover Colos</h2>
+        <button onclick="showScreen('screen-main-menu')" class="btn btn-sm btn-secondary">Back to Menu</button>
+      </div>
+      <div class="form-container">
+        <p class="desc-text">Probes 300 random IPv4 ranges to discover accessible Cloudflare Points of Presence (PoPs) and groups results by Colo.</p>
+        <button onclick="startDiscoverColos()" class="btn btn-lg btn-success w-full">Start Discovery</button>
+      </div>
+    </div>
+
+    <!-- COLO DISCOVERY LIVE/RESULTS -->
+    <div id="screen-colos-results" class="screen">
+      <div class="screen-header">
+        <h2 id="colos-title">Discovering Colos...</h2>
+        <div class="header-actions">
+          <button id="btn-cancel-colos" onclick="cancelScan()" class="btn btn-danger">Cancel</button>
+          <button id="btn-back-colos" onclick="showScreen('screen-main-menu')" class="btn btn-secondary hidden">Back to Menu</button>
+        </div>
+      </div>
+
+      <!-- STATS BAR -->
+      <div class="stats-bar">
+        <div class="stat-card">
+          <span class="stat-label">Tested</span>
+          <span id="colo-stat-tested" class="stat-val">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Healthy</span>
+          <span id="colo-stat-healthy" class="stat-val text-green">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">In Flight</span>
+          <span id="colo-stat-inflight" class="stat-val">0</span>
+        </div>
+      </div>
+
+      <div class="table-container m-top-20">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Colo</th>
+              <th>Average Latency</th>
+              <th>Best Latency</th>
+              <th>Healthy Count</th>
+            </tr>
+          </thead>
+          <tbody id="colos-table-body">
+            <!-- Grouped colos injected here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ABOUT Screen -->
+    <div id="screen-about" class="screen">
+      <div class="screen-header">
+        <h2>About</h2>
+        <button onclick="showScreen('screen-main-menu')" class="btn btn-sm btn-secondary">Back to Menu</button>
+      </div>
+      <div class="about-container">
+        <div class="about-logo">SenPai Scanner GUI</div>
+        <p class="about-desc">A beautiful native Windows desktop GUI wrapper for the SenPai Scanner Cloudflare IP scanner. Rebuilt in Go and Wails to provide a responsive, performant, and modern user experience.</p>
+        <div class="about-info">
+          <p><strong>Version:</strong> <span id="about-version">Loading...</span></p>
+          <p><strong>Original Project:</strong> <a href="#" onclick="openGitHub(); return false;" class="link">MatinSenPai/SenPaiScanner</a></p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
