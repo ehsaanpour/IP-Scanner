@@ -13,6 +13,11 @@ export namespace main {
 	    mode: string;
 	    useV4: boolean;
 	    useV6: boolean;
+	    config: string;
+	    minSpeed: string;
+	    speedURL: string;
+	    speedSize: string;
+	    upload: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new CustomScanConfig(source);
@@ -32,6 +37,11 @@ export namespace main {
 	        this.mode = source["mode"];
 	        this.useV4 = source["useV4"];
 	        this.useV6 = source["useV6"];
+	        this.config = source["config"];
+	        this.minSpeed = source["minSpeed"];
+	        this.speedURL = source["speedURL"];
+	        this.speedSize = source["speedSize"];
+	        this.upload = source["upload"];
 	    }
 	}
 

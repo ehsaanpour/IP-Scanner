@@ -211,6 +211,11 @@ function startCustomScan() {
   const sni = document.getElementById('custom-sni').value;
   const useV4 = document.getElementById('custom-ipv4').checked;
   const useV6 = document.getElementById('custom-ipv6').checked;
+  const config = document.getElementById('custom-config').value;
+  const minSpeed = document.getElementById('custom-minspeed').value;
+  const speedSize = document.getElementById('custom-speedsize').value;
+  const speedURL = document.getElementById('custom-speedurl').value;
+  const upload = document.getElementById('custom-upload').checked;
 
   if (isNaN(count) || count <= 0) {
     alert('Please enter a valid count');
@@ -245,7 +250,12 @@ function startCustomScan() {
     sni,
     mode,
     useV4,
-    useV6
+    useV6,
+    config,
+    minSpeed,
+    speedSize,
+    speedURL,
+    upload
   };
 
   resetScanState('custom', count);

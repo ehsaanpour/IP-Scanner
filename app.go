@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -38,6 +39,11 @@ type CustomScanConfig struct {
 	Mode       string `json:"mode"`
 	UseV4      bool   `json:"useV4"`
 	UseV6      bool   `json:"useV6"`
+	Config     string `json:"config"`
+	MinSpeed   string `json:"minSpeed"`
+	SpeedURL   string `json:"speedURL"`
+	SpeedSize  string `json:"speedSize"`
+	Upload     bool   `json:"upload"`
 }
 
 // FrontendResult holds a JSON-serializable result representation
@@ -257,6 +263,34 @@ func (a *App) runScanGoroutine(ctx context.Context, cfg CustomScanConfig) {
 		return
 	}
 
+	sni := cfg.SNI
+	wsHost := ""
+	wsPath := ""
+	requireWS := false
+
+	if cfg.Config != "" {
+		uSNI, uHost, uPath, uReqWS, uPort := ParseConfigURL(cfg.Config)
+		if uSNI != "" {
+			sni = uSNI
+		}
+		wsHost = uHost
+		wsPath = uPath
+		requireWS = uReqWS
+		if uPort > 0 && port == 443 {
+			port = uPort
+		}
+	}
+
+	speedBytes := parseSpeedSize(cfg.SpeedSize)
+	if mode != prober.ModeHTTP {
+		speedBytes = 0
+	}
+
+	var uploadBytes int64
+	if cfg.Upload && mode == prober.ModeHTTP {
+		uploadBytes = speedBytes
+	}
+
 	engCfg := engine.Config{
 		Concurrency: concurrency,
 		ProbeConfig: prober.Config{
@@ -264,14 +298,19 @@ func (a *App) runScanGoroutine(ctx context.Context, cfg CustomScanConfig) {
 			Mode:             mode,
 			Tries:            tries,
 			Timeout:          timeout,
-			SNI:              cfg.SNI,
-			SpeedBytes:       speedSampleForProbeMode(mode),
-			RequireWebSocket: false,
+			SNI:              sni,
+			SpeedBytes:       speedBytes,
+			RequireWebSocket: requireWS,
+			WebSocketHost:    wsHost,
+			WebSocketPath:    wsPath,
+			SpeedURL:         cfg.SpeedURL,
+			UploadBytes:      uploadBytes,
 		},
 	}
 	eng := engine.New(engCfg)
 
 	coloSet := buildColoSetMap(cfg.ColoFilter)
+	minSpeedThreshold := parseMinSpeed(cfg.MinSpeed)
 
 	var writer *output.Writer
 	if cfg.OutputFile != "" {
@@ -295,6 +334,10 @@ func (a *App) runScanGoroutine(ctx context.Context, cfg CustomScanConfig) {
 		})
 
 		if !passesColoFilterMap(r, coloSet) {
+			return
+		}
+
+		if minSpeedThreshold > 0 && r.Throughput < minSpeedThreshold {
 			return
 		}
 
@@ -564,4 +607,90 @@ func incrementIPBytes(ip net.IP) {
 			break
 		}
 	}
+}
+
+func ParseConfigURL(raw string) (sni string, wsHost string, wsPath string, requireWS bool, port int) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "", "", "", false, 0
+	}
+
+	u, err := url.Parse(raw)
+	if err != nil {
+		return "", "", "", false, 0
+	}
+
+	if u.Port() != "" {
+		if p, err := strconv.Atoi(u.Port()); err == nil {
+			port = p
+		}
+	}
+
+	q := u.Query()
+
+	sni = q.Get("sni")
+	if sni == "" {
+		sni = q.Get("peer")
+	}
+
+	wsHost = q.Get("host")
+	wsPath = q.Get("path")
+
+	transportType := q.Get("type")
+	if transportType == "ws" {
+		requireWS = true
+	}
+
+	return sni, wsHost, wsPath, requireWS, port
+}
+
+func parseSpeedSize(raw string) int64 {
+	raw = strings.TrimSpace(strings.ToUpper(raw))
+	if raw == "" {
+		return 512 * 1024
+	}
+	if strings.Contains(raw, "128") {
+		return 128 * 1024
+	}
+	if strings.Contains(raw, "512") {
+		return 512 * 1024
+	}
+	if strings.Contains(raw, "1 MB") || strings.Contains(raw, "1MB") {
+		return 1024 * 1024
+	}
+	if strings.Contains(raw, "5 MB") || strings.Contains(raw, "5MB") {
+		return 5 * 1024 * 1024
+	}
+	rawNum := strings.TrimRight(raw, " KBMB")
+	if val, err := strconv.ParseInt(rawNum, 10, 64); err == nil {
+		if strings.Contains(raw, "MB") {
+			return val * 1024 * 1024
+		}
+		if strings.Contains(raw, "KB") {
+			return val * 1024
+		}
+		return val
+	}
+	return 512 * 1024
+}
+
+func parseMinSpeed(raw string) float64 {
+	raw = strings.TrimSpace(strings.ToUpper(raw))
+	if raw == "" || raw == "NONE" {
+		return 0
+	}
+	if strings.Contains(raw, "1") {
+		return 125 * 1024
+	}
+	if strings.Contains(raw, "2") {
+		return 250 * 1024
+	}
+	if strings.Contains(raw, "5") {
+		return 625 * 1024
+	}
+	rawNum := strings.TrimRight(raw, " MBPS")
+	if val, err := strconv.ParseFloat(rawNum, 64); err == nil {
+		return val * 125 * 1024
+	}
+	return 0
 }

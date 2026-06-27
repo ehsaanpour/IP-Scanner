@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -37,6 +38,8 @@ type Config struct {
 	WebSocketHost      string // empty = SNI
 	WebSocketPath      string // empty = /
 	RequireWebSocket   bool   // require a successful WebSocket probe for HTTP health
+	SpeedURL           string // custom speed test URL
+	UploadBytes        int64  // optional HTTP upload sample size; 0 disables it
 }
 
 // WithPort returns a copy of Config targeting another remote port.
@@ -117,7 +120,7 @@ func Probe(ctx context.Context, ip net.IP, cfg Config) *result.Result {
 			lat, tlsOk = probeTLS(ctx, ip, cfg.Port, sni, cfg.Timeout, cfg.InsecureSkipVerify)
 		case ModeHTTP:
 			var wsOk bool
-			lat, tlsOk, httpStatus, colo, throughput, wsOk = probeHTTP(ctx, ip, cfg.Port, sni, cfg.Timeout, cfg.SpeedBytes, cfg.InsecureSkipVerify, cfg.WebSocketHost, cfg.WebSocketPath, cfg.RequireWebSocket)
+			lat, tlsOk, httpStatus, colo, throughput, wsOk = probeHTTP(ctx, ip, cfg.Port, sni, cfg.Timeout, cfg.SpeedBytes, cfg.InsecureSkipVerify, cfg.WebSocketHost, cfg.WebSocketPath, cfg.RequireWebSocket, cfg.SpeedURL, cfg.UploadBytes)
 			if wsOk {
 				r.WSOk = true
 			}
@@ -235,7 +238,7 @@ func traceHostsForProbe(primary string) []string {
 
 // probeHTTP fetches /cdn-cgi/trace to confirm the IP is a real Cloudflare edge
 // and to determine the colo identifier.
-func probeHTTP(ctx context.Context, ip net.IP, port int, sni string, timeout time.Duration, speedBytes int64, insecure bool, wsHost, wsPath string, requireWS bool) (
+func probeHTTP(ctx context.Context, ip net.IP, port int, sni string, timeout time.Duration, speedBytes int64, insecure bool, wsHost, wsPath string, requireWS bool, speedURL string, uploadBytes int64) (
 	lat time.Duration, tlsOk bool, httpStatus int, colo string, throughput float64, wsOk bool,
 ) {
 	traceSNI := sni
@@ -251,7 +254,10 @@ func probeHTTP(ctx context.Context, ip net.IP, port int, sni string, timeout tim
 	}
 
 	if speedBytes > 0 {
-		throughput = probeDownload(ctx, ip, port, timeout, speedBytes, insecure)
+		throughput = probeDownload(ctx, ip, port, timeout, speedBytes, insecure, speedURL)
+	}
+	if uploadBytes > 0 {
+		_ = probeUpload(ctx, ip, port, timeout, uploadBytes, insecure, speedURL)
 	}
 	if requireWS {
 		wsOk = probeWebSocket(ctx, ip, port, traceSNI, wsHost, wsPath, timeout)
@@ -519,7 +525,7 @@ func probeStability(ctx context.Context, ip net.IP, port int, sni string, timeou
 	return true
 }
 
-func probeDownload(ctx context.Context, ip net.IP, port int, timeout time.Duration, bytes int64, insecure bool) float64 {
+func probeDownload(ctx context.Context, ip net.IP, port int, timeout time.Duration, bytes int64, insecure bool, speedURL string) float64 {
 	if bytes <= 0 {
 		return 0
 	}
@@ -528,12 +534,23 @@ func probeDownload(ctx context.Context, ip net.IP, port int, timeout time.Durati
 	dialTimeout := max(timeout/4, min(2*time.Second, timeout))
 	handshakeTimeout := max(timeout/2, min(3*time.Second, timeout))
 
+	sni := "speed.cloudflare.com"
+	if speedURL != "" {
+		if u, err := url.Parse(speedURL); err == nil {
+			if h, _, err := net.SplitHostPort(u.Host); err == nil {
+				sni = h
+			} else {
+				sni = u.Host
+			}
+		}
+	}
+
 	transport := &http.Transport{
 		DialContext: func(ctx context.Context, network, _ string) (net.Conn, error) {
 			return (&net.Dialer{Timeout: dialTimeout}).DialContext(ctx, network, addr)
 		},
 		TLSClientConfig: &tls.Config{
-			ServerName:         "speed.cloudflare.com",
+			ServerName:         sni,
 			MinVersion:         tls.VersionTLS12,
 			InsecureSkipVerify: insecure,
 		},
@@ -542,12 +559,16 @@ func probeDownload(ctx context.Context, ip net.IP, port int, timeout time.Durati
 	}
 	client := &http.Client{Timeout: timeout, Transport: transport}
 
-	scheme := "https"
-	if port == 80 {
-		scheme = "http"
+	urlStr := speedURL
+	if urlStr == "" {
+		scheme := "https"
+		if port == 80 {
+			scheme = "http"
+		}
+		urlStr = fmt.Sprintf("%s://speed.cloudflare.com/__down?bytes=%d", scheme, bytes)
 	}
-	url := fmt.Sprintf("%s://speed.cloudflare.com/__down?bytes=%d", scheme, bytes)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlStr, nil)
 	if err != nil {
 		return 0
 	}
@@ -572,6 +593,84 @@ func probeDownload(ctx context.Context, ip net.IP, port int, timeout time.Durati
 		return 0
 	}
 	return float64(n) / elapsed
+}
+
+func probeUpload(ctx context.Context, ip net.IP, port int, timeout time.Duration, bytes int64, insecure bool, speedURL string) float64 {
+	if bytes <= 0 {
+		return 0
+	}
+
+	addr := net.JoinHostPort(ip.String(), strconv.Itoa(port))
+	dialTimeout := max(timeout/4, min(2*time.Second, timeout))
+	handshakeTimeout := max(timeout/2, min(3*time.Second, timeout))
+
+	sni := "speed.cloudflare.com"
+	if speedURL != "" {
+		if u, err := url.Parse(speedURL); err == nil {
+			if h, _, err := net.SplitHostPort(u.Host); err == nil {
+				sni = h
+			} else {
+				sni = u.Host
+			}
+		}
+	}
+
+	transport := &http.Transport{
+		DialContext: func(ctx context.Context, network, _ string) (net.Conn, error) {
+			return (&net.Dialer{Timeout: dialTimeout}).DialContext(ctx, network, addr)
+		},
+		TLSClientConfig: &tls.Config{
+			ServerName:         sni,
+			MinVersion:         tls.VersionTLS12,
+			InsecureSkipVerify: insecure,
+		},
+		DisableKeepAlives:   true,
+		TLSHandshakeTimeout: handshakeTimeout,
+	}
+	client := &http.Client{Timeout: timeout, Transport: transport}
+
+	urlStr := speedURL
+	if urlStr == "" {
+		scheme := "https"
+		if port == 80 {
+			scheme = "http"
+		}
+		urlStr = fmt.Sprintf("%s://speed.cloudflare.com/__up", scheme)
+	}
+
+	bodyReader := io.LimitReader(zeroReader{}, bytes)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, urlStr, bodyReader)
+	if err != nil {
+		return 0
+	}
+	req.Header.Set("User-Agent", "senpaiscanner/1.0")
+	req.Header.Set("Content-Type", "application/octet-stream")
+
+	start := time.Now()
+	resp, err := client.Do(req)
+	if err != nil {
+		return 0
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
+		return 0
+	}
+
+	elapsed := time.Since(start).Seconds()
+	if elapsed <= 0 {
+		return 0
+	}
+	return float64(bytes) / elapsed
+}
+
+type zeroReader struct{}
+
+func (zeroReader) Read(p []byte) (int, error) {
+	for i := range p {
+		p[i] = 0
+	}
+	return len(p), nil
 }
 
 // parseColoCDN extracts the "colo" field from /cdn-cgi/trace responses.

@@ -131,6 +131,32 @@
           <label for="custom-sni">SNI override</label>
           <input type="text" id="custom-sni" class="form-control" placeholder="Leave blank for auto-rotation">
         </div>
+        <div class="form-group col-span-2">
+          <label for="custom-config">Config URL (vless://, trojan://, or vmess://)</label>
+          <input type="text" id="custom-config" class="form-control" placeholder="vless://... or trojan://...">
+        </div>
+        <div class="form-group">
+          <label for="custom-minspeed">Min Speed</label>
+          <select id="custom-minspeed" class="form-control">
+            <option value="None" selected>None</option>
+            <option value="1 Mbps">1 Mbps</option>
+            <option value="2 Mbps">2 Mbps</option>
+            <option value="5 Mbps">5 Mbps</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="custom-speedsize">Speed Size</label>
+          <select id="custom-speedsize" class="form-control">
+            <option value="128 KB">128 KB</option>
+            <option value="512 KB" selected>512 KB (default)</option>
+            <option value="1 MB">1 MB</option>
+            <option value="5 MB">5 MB</option>
+          </select>
+        </div>
+        <div class="form-group col-span-2">
+          <label for="custom-speedurl">Speed URL (optional, leave blank for default speed.cloudflare.com)</label>
+          <input type="text" id="custom-speedurl" class="form-control" placeholder="e.g. http://example.com/file.bin">
+        </div>
         <div class="form-group col-span-2 flex-row">
           <label class="toggle-container">
             <input type="checkbox" id="custom-ipv4" checked>
@@ -141,6 +167,11 @@
             <input type="checkbox" id="custom-ipv6">
             <span class="toggle-slider"></span>
             <span class="toggle-label">IPv6</span>
+          </label>
+          <label class="toggle-container">
+            <input type="checkbox" id="custom-upload">
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Upload</span>
           </label>
         </div>
         <div class="col-span-2">
